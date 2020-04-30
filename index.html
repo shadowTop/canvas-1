@@ -10,31 +10,68 @@
     <canvas id="canvas" width="100" height="100"></canvas>
 
     <script>
-      var canvas = document.getElementById("canvas");
-      var ctx = canvas.getContext("2d");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "black";
+      ctx.strokeStyle = "black";
       let painting = false;
-      console.log(
-        document.documentElement.clientWidth,
-        document.documentElement.clientHeight
-      );
+      let last;
       canvas.width = document.documentElement.clientWidth;
       canvas.height = document.documentElement.clientHeight;
-      canvas.onmousedown = () => {
-        painting = true;
-      };
-      canvas.onmousemove = (e) => {
-        if (painting === true) {
-          console.log(e.clientX);
-          console.log(e.clientY);
-          ctx.fillStyle = "red";
-          ctx.fillRect(e.clientX, e.clientY, 10, 10);
-        } else {
-          console.log("do none");
-        }
-      };
-      canvas.onmouseup = () => {
-        painting = false;
-      };
+      function drawLine(x1, y1, x2, y2) {
+        ctx.beginPath();
+        //之前这个属性写在外面没有效果
+        //我猜可能是要写在beginPath之后
+        ctx.lineWidth = 5;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+
+      // console.log(
+      //   document.documentElement.clientWidth,
+      //   document.documentElement.clientHeight
+      // );
+      var isTouchDevice = "ontouchstart" in document.documentElement;
+      console.log(isTouchDevice);
+      if (isTouchDevice) {
+        canvas.ontouchstart = (e) => {
+          let x = e.touches[0].clientX;
+          let y = e.touches[0].clientY;
+          last = [x, y];
+          console.log(last);
+        };
+        canvas.ontouchmove = (e) => {
+          //在手机上支持多点触控，这时候触摸可能就是一个属性，所以我们需要获取第一个的值
+          let x = e.touches[0].clientX;
+          let y = e.touches[0].clientY;
+          drawLine(last[0], last[1], x, y);
+          last = [x, y];
+        };
+      } else {
+        canvas.onmousedown = (e) => {
+          painting = true;
+          last = [e.clientX, e.clientY];
+        };
+        canvas.onmousemove = (e) => {
+          if (painting === true) {
+            // console.log(e.clientX);
+            // console.log(e.clientY);
+            drawLine(last[0], last[1], e.clientX, e.clientY);
+            last = [e.clientX, e.clientY];
+            // ctx.beginPath();
+            // ctx.arc(e.clientX, e.clientY, 10, 0, 2 * Math.PI);
+            // ctx.stroke();
+            // ctx.fill();
+          } else {
+            console.log("do none");
+          }
+        };
+        canvas.onmouseup = () => {
+          painting = false;
+        };
+      }
     </script>
   </body>
 </html>
